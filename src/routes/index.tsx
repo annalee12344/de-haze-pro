@@ -65,11 +65,11 @@ function Index() {
   }, [phase]);
 
   useEffect(() => {
-    if (phase === "processing" && progress >= 100) {
-      const t = window.setTimeout(() => setPhase("ready"), 320);
-      return () => window.clearTimeout(t);
-    }
+    if (phase !== "processing" || progress < 100) return undefined;
+    const t = window.setTimeout(() => setPhase("ready"), 320);
+    return () => window.clearTimeout(t);
   }, [phase, progress]);
+
 
   useEffect(() => {
     if (phase !== "idle") {

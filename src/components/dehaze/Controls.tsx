@@ -15,13 +15,14 @@ export const PRESETS: Record<Preset, Adjustments> = {
 };
 
 export function buildFilter(a: Adjustments) {
-  const contrast = 1 + (a.contrast - 50) / 100 + a.haze / 190;
-  const brightness = 1 + (a.brightness - 50) / 160 - a.haze / 900;
-  const saturate = 1 + (a.saturation - 50) / 70 + a.haze / 260;
+  const contrast = 1 + (a.contrast - 50) / 60 + a.haze / 85;
+  const brightness = 1 + (a.brightness - 50) / 130 - a.haze / 320;
+  const saturate = 1 + (a.saturation - 50) / 50 + a.haze / 110;
   return `contrast(${contrast.toFixed(3)}) brightness(${brightness.toFixed(
     3,
   )}) saturate(${saturate.toFixed(3)})`;
 }
+
 
 type Props = {
   preset: Preset;
@@ -54,7 +55,7 @@ export function Controls({
           <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
             Dehazing
           </p>
-          <div className="mt-3 grid grid-cols-4 gap-px bg-border p-px">
+          <div className="mt-3 grid grid-cols-2 gap-px bg-border p-px sm:grid-cols-4">
             {(["auto", "mild", "balanced", "strong"] as const).map((p) => (
               <button
                 key={p}

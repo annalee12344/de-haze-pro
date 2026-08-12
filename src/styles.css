@@ -154,5 +154,42 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
   }
 }
+
+@utility font-display {
+  font-family: var(--font-display);
+}
+
+@utility dehaze-range {
+  appearance: none;
+  height: 2px;
+  background: var(--border);
+  cursor: pointer;
+
+  &::-webkit-slider-thumb {
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 9999px;
+    background: var(--surface);
+    border: 1px solid var(--foreground);
+    transition: background-color 0.15s ease;
+  }
+
+  &::-webkit-slider-thumb:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  &::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 9999px;
+    background: var(--surface);
+    border: 1px solid var(--foreground);
+  }
+}
+

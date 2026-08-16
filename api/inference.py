@@ -309,7 +309,7 @@ def _run_dark_channel_prior(
         result_image = Image.fromarray(result_arr, mode="RGB")
 
         # ---- cleanup ------------------------------------------------------------
-        del tensor, dehazed_tensor, outputs, arr
+        del tensor, dehazed_tensor, arr
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
 

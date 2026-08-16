@@ -1,0 +1,12 @@
+frontend/node_modules
+frontend/.output
+.venv
+__pycache__
+*.pyc
+.git
+*.pth
+*.pt
+dehazed.jpg
+dehazed_test.jpg
+float_comparison.png
+*.log

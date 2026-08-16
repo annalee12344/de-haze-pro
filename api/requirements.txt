@@ -1,0 +1,11 @@
+# Python dependencies for the DeHaze API
+# Pinned to known-compatible versions with Python 3.11 + PyTorch 2.x
+
+fastapi>=0.115.0,<1.0
+uvicorn[standard]>=0.30.0,<1.0
+python-multipart>=0.0.18
+
+# Core inference (these should already be installed)
+torch>=2.0.0
+numpy>=1.24.0
+Pillow>=10.0.0

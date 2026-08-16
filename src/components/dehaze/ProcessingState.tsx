@@ -1,22 +1,16 @@
-type Props = { stage: 0 | 1; progress: number };
+type Props = { message?: string };
 
-export function ProcessingState({ stage, progress }: Props) {
+export function ProcessingState({ message = "Processing image..." }: Props) {
   return (
     <div className="border border-border bg-surface p-10 shadow-panel sm:p-16">
-      <p className="font-display text-lg font-medium text-foreground">
-        {stage === 0 ? "Analyzing image…" : "Restoring visibility…"}
-      </p>
-      <p className="mt-1.5 text-[13px] text-muted-foreground">
-        Estimating atmospheric light and transmission map.
-      </p>
-      <div className="mt-8 h-px w-full bg-border">
-        <div
-          className="h-px bg-accent transition-[width] duration-200 ease-out"
-          style={{ width: `${progress}%` }}
-        />
+      <div className="flex items-center gap-4">
+        <div className="h-5 w-5 animate-spin rounded-full border-2 border-border border-t-accent" />
+        <p className="font-display text-lg font-medium text-foreground">
+          {message}
+        </p>
       </div>
-      <p className="mt-3 font-mono text-[11px] text-muted-foreground">
-        {Math.round(progress)}%
+      <p className="mt-4 text-[13px] text-muted-foreground">
+        Running PyTorch Dark Channel Prior algorithm. This may take 15–20 seconds on CPU.
       </p>
     </div>
   );

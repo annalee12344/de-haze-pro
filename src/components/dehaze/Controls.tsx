@@ -1,23 +1,22 @@
 export type Preset = "auto" | "mild" | "balanced" | "strong";
 
 export type Adjustments = {
-  haze: number;
   contrast: number;
   brightness: number;
   saturation: number;
 };
 
 export const PRESETS: Record<Preset, Adjustments> = {
-  auto: { haze: 62, contrast: 55, brightness: 48, saturation: 58 },
-  mild: { haze: 32, contrast: 45, brightness: 50, saturation: 52 },
-  balanced: { haze: 60, contrast: 56, brightness: 47, saturation: 60 },
-  strong: { haze: 88, contrast: 68, brightness: 44, saturation: 72 },
+  auto: { contrast: 50, brightness: 50, saturation: 50 },
+  mild: { contrast: 45, brightness: 50, saturation: 52 },
+  balanced: { contrast: 55, brightness: 50, saturation: 55 },
+  strong: { contrast: 65, brightness: 48, saturation: 60 },
 };
 
 export function buildFilter(a: Adjustments) {
-  const contrast = 1 + (a.contrast - 50) / 60 + a.haze / 85;
-  const brightness = 1 + (a.brightness - 50) / 130 - a.haze / 320;
-  const saturate = 1 + (a.saturation - 50) / 50 + a.haze / 110;
+  const contrast = 1 + (a.contrast - 50) / 60;
+  const brightness = 1 + (a.brightness - 50) / 130;
+  const saturate = 1 + (a.saturation - 50) / 50;
   return `contrast(${contrast.toFixed(3)}) brightness(${brightness.toFixed(
     3,
   )}) saturate(${saturate.toFixed(3)})`;
@@ -34,7 +33,6 @@ type Props = {
 };
 
 const FIELDS: { key: keyof Adjustments; label: string }[] = [
-  { key: "haze", label: "Haze Removal" },
   { key: "contrast", label: "Contrast" },
   { key: "brightness", label: "Brightness" },
   { key: "saturation", label: "Saturation" },

@@ -13,6 +13,7 @@ import {
   type Adjustments,
   type Preset,
 } from "@/components/dehaze/Controls";
+import { dehazeImage, ApiError } from "@/lib/api";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -38,38 +39,54 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const [image, setImage] = useState<string | null>(null);
-  const [phase, setPhase] = useState<"idle" | "processing" | "ready">("idle");
-  const [progress, setProgress] = useState(0);
+  const [dehazedImage, setDehazedImage] = useState<string | null>(null);
+  const [phase, setPhase] = useState<"idle" | "processing" | "ready" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  
   const [preset, setPreset] = useState<Preset>("auto");
   const [adjustments, setAdjustments] = useState<Adjustments>(PRESETS.auto);
   const inputRef = useRef<HTMLInputElement>(null);
   const workspaceRef = useRef<HTMLDivElement>(null);
 
-  const start = useCallback((src: string) => {
-    setImage(src);
+  const start = useCallback(async (file: File) => {
+    // Cleanup previous object URLs
+    if (image && image.startsWith("blob:")) URL.revokeObjectURL(image);
+    if (dehazedImage && dehazedImage.startsWith("blob:")) URL.revokeObjectURL(dehazedImage);
+
+    const originalUrl = URL.createObjectURL(file);
+    setImage(originalUrl);
+    setDehazedImage(null);
     setPreset("auto");
     setAdjustments(PRESETS.auto);
-    setProgress(0);
+    setErrorMsg(null);
     setPhase("processing");
-  }, []);
 
-  useEffect(() => {
-    if (phase !== "processing") return;
-    const id = window.setInterval(() => {
-      setProgress((p) => {
-        if (p >= 100) return 100;
-        return p + Math.random() * 9 + 3;
-      });
-    }, 90);
-    return () => window.clearInterval(id);
-  }, [phase]);
+    try {
+      const result = await dehazeImage(file);
+      setDehazedImage(result.blobUrl);
+      setPhase("ready");
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setErrorMsg(err.message);
+      } else {
+        setErrorMsg("An unexpected error occurred.");
+      }
+      setPhase("error");
+    }
+  }, [image, dehazedImage]);
 
-  useEffect(() => {
-    if (phase !== "processing" || progress < 100) return undefined;
-    const t = window.setTimeout(() => setPhase("ready"), 320);
-    return () => window.clearTimeout(t);
-  }, [phase, progress]);
-
+  const loadSample = useCallback(async () => {
+    try {
+      setPhase("processing");
+      const res = await fetch(sampleHazy);
+      const blob = await res.blob();
+      const file = new File([blob], "sample-hazy.jpg", { type: "image/jpeg" });
+      await start(file);
+    } catch (err) {
+      setErrorMsg("Failed to load sample image.");
+      setPhase("error");
+    }
+  }, [start]);
 
   useEffect(() => {
     if (phase !== "idle") {
@@ -79,9 +96,7 @@ function Index() {
 
   const handleFile = useCallback(
     (file: File) => {
-      const reader = new FileReader();
-      reader.onload = () => start(String(reader.result));
-      reader.readAsDataURL(file);
+      start(file);
     },
     [start],
   );
@@ -89,7 +104,7 @@ function Index() {
   const filter = buildFilter(adjustments);
 
   const download = useCallback(() => {
-    if (!image) return;
+    if (!dehazedImage) return;
     const img = new Image();
     img.crossOrigin = "anonymous";
     img.onload = () => {
@@ -105,8 +120,15 @@ function Index() {
       link.download = "dehazed.jpg";
       link.click();
     };
-    img.src = image;
-  }, [image, filter]);
+    img.src = dehazedImage;
+  }, [dehazedImage, filter]);
+
+  const resetState = () => {
+    setPhase("idle");
+    setImage(null);
+    setDehazedImage(null);
+    setErrorMsg(null);
+  };
 
   return (
     <div className="min-h-screen bg-background font-sans text-foreground">
@@ -127,7 +149,7 @@ function Index() {
               <UploadPanel
                 inputRef={inputRef}
                 onFile={handleFile}
-                onSample={() => start(sampleHazy)}
+                onSample={loadSample}
               />
             </div>
           </section>
@@ -147,10 +169,7 @@ function Index() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => {
-                    setPhase("idle");
-                    setImage(null);
-                  }}
+                  onClick={resetState}
                   className="text-[13px] text-muted-foreground transition-colors hover:text-foreground"
                 >
                   Use another image
@@ -158,11 +177,26 @@ function Index() {
               </div>
 
               {phase === "processing" ? (
-                <ProcessingState stage={progress < 50 ? 0 : 1} progress={Math.min(progress, 100)} />
-              ) : (
+                <ProcessingState />
+              ) : phase === "error" ? (
+                <div className="border border-destructive/20 bg-destructive/10 p-10 shadow-panel sm:p-16 text-center">
+                  <p className="font-display text-lg font-medium text-destructive">
+                    Processing Failed
+                  </p>
+                  <p className="mt-2 text-[14px] text-muted-foreground">
+                    {errorMsg}
+                  </p>
+                  <button
+                    onClick={resetState}
+                    className="mt-6 rounded-[4px] bg-background border border-border px-4 py-2 text-[13px] font-medium text-foreground transition-colors hover:bg-surface-sunken"
+                  >
+                    Try Again
+                  </button>
+                </div>
+              ) : phase === "ready" && dehazedImage ? (
                 <div className="animate-in fade-in duration-700 space-y-5">
                   <div className="border border-border bg-surface p-2 shadow-lift sm:p-3">
-                    <CompareSlider src={image} filter={filter} />
+                    <CompareSlider originalSrc={image} dehazedSrc={dehazedImage} filter={filter} />
                   </div>
                   <Controls
                     preset={preset}
@@ -181,7 +215,7 @@ function Index() {
                     onDownload={download}
                   />
                 </div>
-              )}
+              ) : null}
             </section>
           )}
         </div>

@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type Props = {
-  src: string;
+  originalSrc: string;
+  dehazedSrc: string;
   filter: string;
 };
 
-export function CompareSlider({ src, filter }: Props) {
+export function CompareSlider({ originalSrc, dehazedSrc, filter }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState(50);
   const draggingRef = useRef(false);
@@ -45,7 +46,7 @@ export function CompareSlider({ src, filter }: Props) {
       }}
     >
       <img
-        src={src}
+        src={originalSrc}
         alt="Original hazy image"
         className="block w-full object-cover"
         draggable={false}
@@ -56,7 +57,7 @@ export function CompareSlider({ src, filter }: Props) {
         style={{ clipPath: `inset(0 0 0 ${position}%)` }}
       >
         <img
-          src={src}
+          src={dehazedSrc}
           alt="Dehazed result"
           className="block w-full object-cover"
           style={{ filter }}
